@@ -3,21 +3,84 @@ const app = express();
 
 app.use(express.json());
 
-let lampCommand = "off";
-let sensorData = { temp: 0, hum: 0, lux: 0, lampStatus: "unknown" };
+let lampCommand = "none";
+
+let sensorData = {
+  temp: 0,
+  hum: 0,
+  lux: 0,
+  lampStatus: "unknown"
+};
 
 app.get("/", (req, res) => {
   res.send(`
-    <h1>ESP32 Dashboard</h1>
-    <p>Temp: ${sensorData.temp} C</p>
-    <p>Humidity: ${sensorData.hum} %</p>
-    <p>Lux: ${sensorData.lux}</p>
-    <p>Lamp: ${sensorData.lampStatus}</p>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>ESP32 Dashboard</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta http-equiv="refresh" content="1">
 
-    <a href="/on"><button>ON</button></a>
-    <a href="/off"><button>OFF</button></a>
+      <style>
+        body {
+          font-family: Arial;
+          background: #111;
+          color: white;
+          text-align: center;
+          padding: 20px;
+        }
 
-    <p>Command: ${lampCommand}</p>
+        .card {
+          background: #222;
+          padding: 20px;
+          border-radius: 15px;
+          margin: 20px auto;
+          max-width: 400px;
+        }
+
+        button {
+          font-size: 24px;
+          padding: 15px 30px;
+          margin: 10px;
+          border: none;
+          border-radius: 10px;
+          cursor: pointer;
+        }
+
+        .on {
+          background: #22c55e;
+          color: white;
+        }
+
+        .off {
+          background: #ef4444;
+          color: white;
+        }
+      </style>
+    </head>
+
+    <body>
+      <h1>ESP32 Dashboard</h1>
+
+      <div class="card">
+        <h2>Sensor Data</h2>
+        <p>Temperature: ${sensorData.temp} °C</p>
+        <p>Humidity: ${sensorData.hum} %</p>
+        <p>Lux: ${sensorData.lux} lx</p>
+        <p>Lamp: ${sensorData.lampStatus}</p>
+      </div>
+
+      <div class="card">
+        <h2>Lamp Control</h2>
+        <a href="/on"><button class="on">ON</button></a>
+        <a href="/off"><button class="off">OFF</button></a>
+      </div>
+
+      <div class="card">
+        <p>Current command: ${lampCommand}</p>
+      </div>
+    </body>
+    </html>
   `);
 });
 
@@ -32,18 +95,23 @@ app.get("/off", (req, res) => {
 });
 
 app.get("/command", (req, res) => {
-  res.json({ lamp: lampCommand });
+  res.json({
+    lamp: lampCommand
+  });
+
+  lampCommand = "none";
 });
 
 app.post("/update", (req, res) => {
   sensorData = req.body;
-  res.send("OK");
+
+  console.log("Sensor update:", sensorData);
+
+  res.json({
+    success: true
+  });
 });
-/*
-app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
-});
-*/
+
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
