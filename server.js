@@ -19,7 +19,6 @@ app.get("/", (req, res) => {
     <head>
       <title>ESP32 Dashboard</title>
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta http-equiv="refresh" content="1">
 
       <style>
         body {
@@ -64,52 +63,74 @@ app.get("/", (req, res) => {
 
       <div class="card">
         <h2>Sensor Data</h2>
-        <p>Temperature: ${sensorData.temp} °C</p>
-        <p>Humidity: ${sensorData.hum} %</p>
-        <p>Lux: ${sensorData.lux} lx</p>
-        <p>Lamp: ${sensorData.lampStatus}</p>
+        <p>Temperature: <span id="temp">--</span> °C</p>
+        <p>Humidity: <span id="hum">--</span> %</p>
+        <p>Lux: <span id="lux">--</span> lx</p>
+        <p>Lamp: <span id="lamp">unknown</span></p>
       </div>
 
       <div class="card">
         <h2>Lamp Control</h2>
-        <a href="/on"><button class="on">ON</button></a>
-        <a href="/off"><button class="off">OFF</button></a>
+        <button class="on" onclick="sendCommand('on')">ON</button>
+        <button class="off" onclick="sendCommand('off')">OFF</button>
       </div>
 
-      <div class="card">
-        <p>Current command: ${lampCommand}</p>
-      </div>
+      <script>
+        async function loadData() {
+          const res = await fetch("/data");
+          const data = await res.json();
+
+          document.getElementById("temp").innerText = data.temp;
+          document.getElementById("hum").innerText = data.hum;
+          document.getElementById("lux").innerText = data.lux;
+          document.getElementById("lamp").innerText = data.lampStatus;
+        }
+
+        async function sendCommand(state) {
+          await fetch("/command", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ lamp: state })
+          });
+
+          document.getElementById("lamp").innerText = state;
+        }
+
+        loadData();
+        setInterval(loadData, 1000);
+      </script>
     </body>
     </html>
   `);
 });
 
-app.get("/on", (req, res) => {
-  lampCommand = "on";
-  res.redirect("/");
+app.get("/data", (req, res) => {
+  res.json(sensorData);
 });
 
-app.get("/off", (req, res) => {
-  lampCommand = "off";
-  res.redirect("/");
+app.post("/command", (req, res) => {
+  const lamp = req.body.lamp;
+
+  if (lamp === "on" || lamp === "off") {
+    lampCommand = lamp;
+    console.log("New command:", lamp);
+    return res.json({ success: true });
+  }
+
+  res.status(400).json({ success: false });
 });
 
 app.get("/command", (req, res) => {
-  res.json({
-    lamp: lampCommand
-  });
-
+  res.json({ lamp: lampCommand });
   lampCommand = "none";
 });
 
 app.post("/update", (req, res) => {
   sensorData = req.body;
-
   console.log("Sensor update:", sensorData);
-
-  res.json({
-    success: true
-  });
+  res.json({ success: true });
 });
 
 const PORT = process.env.PORT || 3000;
