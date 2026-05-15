@@ -1,4 +1,4 @@
-#ESP32 and Shelly Plug S Gen3 Smart Home Project
+# ESP32 and Shelly Plug S Gen3 Smart Home Project
 
 An IoT smart home system that allows a user to remotely monitor and control a lamp connected to a Shelly Plug S Gen3 using an ESP32.
 
@@ -8,11 +8,11 @@ Shelly Plug S Gen3 smart plug
 TSL2591 light sensor
 DHT22 temperature and humidity sensor
 
-##System Overview
+## System Overview
 
 The ESP32 and Shelly Plug S Gen3 must be connected to the same 2.4 GHz Wi-Fi network.
 
-###The ESP32:
+### The ESP32:
 - Collects sensor data
 - Communicates with the Shelly Plug S Gen3 over Wi-Fi
 - Monitors lamp status using the light sensor
